@@ -13,7 +13,7 @@ A modern, full-stack task management application built with Node.js, Express, Mo
 
 ### 🚀 Live Demo
 
-**[View Live Application](https://task-manager-app-deployed.netlify.app/)** 
+**[View Live Application](https://task-manager-omega-kohl-93.vercel.app/)** 
 
 </div>
 
@@ -45,7 +45,7 @@ A modern, full-stack task management application built with Node.js, Express, Mo
 
 | Component | Link | Status |
 |-----------|------|--------|
-| **Frontend** | [https://task-manager-app-deployed.netlify.app/](https://task-manager-app-deployed.netlify.app/) | 
+| **Frontend** | [https://task-manager-omega-kohl-93.vercel.app/](https://task-manager-omega-kohl-93.vercel.app/) |  Available |
 | **API Documentation** | [Backend API Docs](#api-documentation) | Available |
 
 ### Demo Credentials
