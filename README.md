@@ -13,9 +13,7 @@ A modern, full-stack task management application built with Node.js, Express, Mo
 
 ### 🚀 Live Demo
 
-**[View Live Application](https://task-manager-app-deployed.netlify.app/)** • **[Backend API](https://task-manager-backend-deployed.herokuapp.com/)**
-
-> *Coming soon! Deploy instructions below.*
+**[View Live Application](https://task-manager-app-deployed.netlify.app/)** 
 
 </div>
 
@@ -47,8 +45,7 @@ A modern, full-stack task management application built with Node.js, Express, Mo
 
 | Component | Link | Status |
 |-----------|------|--------|
-| **Frontend** | [https://task-manager-app-deployed.netlify.app/](https://task-manager-app-deployed.netlify.app/) | Coming Soon |
-| **Backend API** | [https://task-manager-backend-deployed.herokuapp.com/](https://task-manager-backend-deployed.herokuapp.com/) | Coming Soon |
+| **Frontend** | [https://task-manager-app-deployed.netlify.app/](https://task-manager-app-deployed.netlify.app/) | 
 | **API Documentation** | [Backend API Docs](#api-documentation) | Available |
 
 ### Demo Credentials
@@ -973,6 +970,289 @@ curl -X DELETE http://localhost:5000/api/tasks/TASK_ID \
 
 ## 🌐 Deployment
 
+### Prerequisites for Deployment
+
+Before deploying, you'll need accounts on:
+- **[MongoDB Atlas](https://www.mongodb.com/cloud/atlas)** - Free cloud MongoDB
+- **[Render](https://render.com/)** - Backend hosting
+- **[Vercel](https://vercel.com/)** - Frontend hosting
+- **[GitHub](https://github.com/)** - For deploying from repository
+
+---
+
+### Step 1: Set Up MongoDB Atlas (Cloud Database)
+
+1. **Create MongoDB Atlas Account**
+   - Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+   - Sign up and create a free account
+   - Create a new project (e.g., "task-manager")
+
+2. **Create a Cluster**
+   - Click "Create a Deployment"
+   - Choose "Free Shared" tier
+   - Select your region
+   - Create cluster (wait 3-5 minutes)
+
+3. **Create Database User**
+   - Go to "Database Access"
+   - Click "Add New Database User"
+   - Username: `task_manager_user`
+   - Password: Generate a strong password
+   - Add user
+
+4. **Get Connection String**
+   - Go to "Databases" → "Connect"
+   - Click "Drivers"
+   - Copy the MongoDB URI
+   - Format: `mongodb+srv://<username>:<password>@cluster.mongodb.net/task_manager?retryWrites=true&w=majority`
+   - Replace `<username>` and `<password>` with your credentials
+   - **Save this URI** - you'll need it for Render
+
+5. **Allow Network Access**
+   - Go to "Network Access"
+   - Click "Add IP Address"
+   - Select "Allow Access from Anywhere" (for development)
+   - In production, restrict to Render's IP
+
+---
+
+### Step 2: Deploy Backend on Render
+
+1. **Push Backend to GitHub**
+   ```bash
+   cd global\ trend
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git branch -M main
+   git remote add origin https://github.com/YOUR_USERNAME/task-manager.git
+   git push -u origin main
+   ```
+
+2. **Create Render Account**
+   - Go to [Render](https://render.com/)
+   - Sign up with GitHub
+   - Grant repository access
+
+3. **Create New Web Service**
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository
+   - Select the `task-manager` repository
+   - Choose the correct branch: `main`
+
+4. **Configure Web Service**
+   ```
+   Name: task-manager-api
+   Environment: Node
+   Build Command: cd backend && npm install
+   Start Command: cd backend && npm start
+   Region: Select closest to you
+   Plan: Free (for testing)
+   ```
+
+5. **Add Environment Variables**
+   - Click "Environment" section
+   - Add the following variables:
+   
+   ```
+   NODE_ENV=production
+   PORT=5000
+   MONGODB_URI=mongodb+srv://task_manager_user:YOUR_PASSWORD@cluster.mongodb.net/task_manager?retryWrites=true&w=majority
+   JWT_SECRET=<paste random 32-char string>
+   JWT_EXPIRE=7d
+   ```
+
+   **To generate JWT_SECRET:**
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+
+6. **Configure CORS for Frontend**
+   - After deployment, you'll get a URL like: `https://task-manager-api.onrender.com`
+   - Update `backend/src/app.js` CORS configuration:
+   
+   ```javascript
+   const corsOptions = {
+     origin: [
+       'http://localhost:8000',
+       'https://your-frontend-vercel-url.vercel.app'
+     ],
+     credentials: true
+   };
+   app.use(cors(corsOptions));
+   ```
+   
+   - Push this change to GitHub, Render will auto-redeploy
+
+7. **Deploy**
+   - Render will automatically deploy when you push to GitHub
+   - Monitor progress in the "Logs" tab
+   - Once deployed, test the API:
+   
+   ```bash
+   curl https://task-manager-api.onrender.com/
+   ```
+
+---
+
+### Step 3: Deploy Frontend on Vercel
+
+1. **Create Vercel Account**
+   - Go to [Vercel](https://vercel.com/)
+   - Sign up with GitHub
+   - Grant repository access
+
+2. **Create New Project**
+   - Click "Add New..." → "Project"
+   - Select your `task-manager` repository
+   - Click "Import"
+
+3. **Configure Project**
+   ```
+   Framework Preset: Other (for static files)
+   Build Command: (leave empty)
+   Output Directory: frontend
+   Root Directory: (leave empty)
+   ```
+
+4. **Environment Variables**
+   - Add variable for your backend URL:
+   
+   ```
+   VITE_API_URL=https://task-manager-api.onrender.com/api
+   ```
+   
+   > Note: This will be used by frontend if you update app.js to use environment variable
+
+5. **Update Frontend for Production API**
+   
+   Open `frontend/js/app.js` and update the API URL:
+   
+   ```javascript
+   // At the top of the file, add:
+   const API_BASE_URL = 'https://task-manager-api.onrender.com/api';
+   
+   // Then update all fetch calls to use this URL
+   // Example:
+   fetch(`${API_BASE_URL}/auth/register`, {
+     method: 'POST',
+     ...
+   })
+   ```
+
+6. **Push Changes to GitHub**
+   ```bash
+   git add .
+   git commit -m "Update API URL for production"
+   git push origin main
+   ```
+
+7. **Deploy**
+   - Vercel will automatically deploy
+   - Monitor progress in the Vercel dashboard
+   - You'll get a URL like: `https://task-manager-xxxxx.vercel.app`
+
+---
+
+### Step 4: Connect Frontend to Backend
+
+1. **Update Frontend API URL**
+   - Replace `API_BASE_URL` in `frontend/js/app.js` with your Render backend URL
+   - Redeploy to Vercel
+
+2. **Test the Connection**
+   - Open your Vercel frontend URL
+   - Click "Register"
+   - Try creating an account
+   - If successful, your app is connected! 🎉
+
+---
+
+### Environment Variables Checklist
+
+**Render Backend:**
+| Variable | Value | Example |
+|----------|-------|---------|
+| `NODE_ENV` | `production` | production |
+| `PORT` | `5000` | 5000 |
+| `MONGODB_URI` | MongoDB Atlas URI | `mongodb+srv://user:pass@cluster.mongodb.net/task_manager...` |
+| `JWT_SECRET` | 32-char random string | `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6` |
+| `JWT_EXPIRE` | `7d` | 7d |
+
+**Vercel Frontend:**
+| Variable | Value | Example |
+|----------|-------|---------|
+| `VITE_API_URL` | Render backend URL | `https://task-manager-api.onrender.com/api` |
+
+---
+
+### Monitoring and Troubleshooting
+
+**Check Backend Logs (Render)**
+- Go to your service → "Logs"
+- Look for errors in real-time
+
+**Check Frontend Logs (Vercel)**
+- Go to your project → "Analytics"
+- Check browser console for errors
+
+**Common Issues**
+
+| Issue | Solution |
+|-------|----------|
+| CORS errors | Update CORS origins in `backend/src/app.js` |
+| 401 Unauthorized | Ensure JWT_SECRET is the same on backend |
+| MongoDB connection failed | Check MONGODB_URI and IP whitelist in Atlas |
+| Frontend can't reach backend | Verify API_BASE_URL in frontend/js/app.js |
+| Tasks not loading | Check user is logged in and token is valid |
+
+**Test API Endpoints**
+```bash
+# Test backend is running
+curl https://task-manager-api.onrender.com/
+
+# Test registration
+curl -X POST https://task-manager-api.onrender.com/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
+
+# Test login
+curl -X POST https://task-manager-api.onrender.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
+```
+
+---
+
+### Post-Deployment Security
+
+**Production Checklist:**
+- ✅ Change MongoDB password from weak development password
+- ✅ Restrict MongoDB IP whitelist to Render IP only
+- ✅ Use strong, unique JWT_SECRET
+- ✅ Enable HTTPS (automatic on Render & Vercel)
+- ✅ Configure CORS to specific domains only
+- ✅ Set NODE_ENV to production
+- ✅ Consider implementing rate limiting
+- ✅ Enable MongoDB backups
+- ✅ Set up error logging/monitoring
+- ✅ Monitor Render & Vercel for service health
+
+---
+
+### Keep Your App Running
+
+**Render Free Tier Notes:**
+- Services sleep after 15 mins of inactivity
+- First request after sleep takes 30 seconds
+- Upgrade to paid plan to avoid spinning down
+
+**Solution:**
+- Upgrade to Starter plan ($7/month)
+- Or use a monitoring service to ping every 14 minutes
+
+---
+
 ### Backend Deployment (Heroku)
 
 1. **Install Heroku CLI**
@@ -998,28 +1278,6 @@ curl -X DELETE http://localhost:5000/api/tasks/TASK_ID \
    ```bash
    git push heroku main
    ```
-
-### Frontend Deployment (Netlify/Vercel)
-
-1. Update API base URL - Already set to use `http://localhost:5000/api` for development
-2. For production, no code changes needed - uses relative API calls
-3. Deploy frontend folder to Netlify or Vercel
-4. Ensure backend CORS is configured for your domain
-
-### Environment-Specific Configuration
-
-**Production Checklist:**
-- ✅ Use MongoDB Atlas instead of local MongoDB
-- ✅ Set `NODE_ENV=production`
-- ✅ Use strong database credentials
-- ✅ Generate secure JWT_SECRET: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
-- ✅ Enable HTTPS
-- ✅ Configure proper CORS origins (not `*`)
-- ✅ Set up monitoring and logging
-- ✅ Consider httpOnly cookies instead of localStorage
-- ✅ Implement refresh tokens
-- ✅ Add rate limiting on auth endpoints
-- ✅ Enable email verification on registration
 
 ---
 

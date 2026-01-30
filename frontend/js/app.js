@@ -1,6 +1,6 @@
 // API Configuration
-const API_URL = 'http://localhost:5000/api/tasks';
-const AUTH_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'https://task-manager-1u60.onrender.com/api/tasks';
+const AUTH_URL = 'https://task-manager-1u60.onrender.com/api/auth';
 
 // DOM Elements
 const taskForm = document.getElementById('taskForm');
