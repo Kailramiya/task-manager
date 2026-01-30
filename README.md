@@ -50,13 +50,8 @@ A modern, full-stack task management application built with Node.js, Express, Mo
 
 ### Demo Credentials
 
-Once deployed, you can test with:
-```
-Email: demo@example.com
-Password: demo123
-```
 
-Or create your own account by registering!
+ create your own account by registering!
 
 ---
 
